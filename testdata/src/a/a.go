@@ -6,8 +6,6 @@ import (
 )
 
 func sample(db *sql.DB) {
-	defer db.Close()
-
 	s := "alice"
 
 	_ = db.QueryRowContext(context.Background(), "SELECT * FROM test WHERE test=?", s)
@@ -36,5 +34,9 @@ UPDATE * FROM test WHERE test=?`
 
 	f4 := f3
 	_ = db.QueryRow(f4, s) // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
+
+	f5 := `
+UPDATE * ` + `FROM test` + ` WHERE test=?`
+	_ = db.QueryRow(f5, s) // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
 
 }

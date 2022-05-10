@@ -58,7 +58,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return
 			}
 
-			s = strings.TrimSpace(strings.NewReplacer(`"`, "", "`", "").Replace(s))
+			s = strings.TrimSpace(cleanValue(s))
 
 			if strings.HasPrefix(strings.ToLower(s), "select") {
 				return
@@ -76,19 +76,34 @@ func run(pass *analysis.Pass) (interface{}, error) {
 func getQueryString(exp interface{}) string {
 	switch e := exp.(type) {
 	case *ast.AssignStmt:
+		var v string
 		for _, stmt := range e.Rhs {
-			return getQueryString(stmt)
+			v += cleanValue(getQueryString(stmt))
 		}
+		return v
 
 	case *ast.BasicLit:
 		return e.Value
 
 	case *ast.ValueSpec:
-		return getQueryString(e.Values[0])
+		var v string
+		for _, value := range e.Values {
+			v += cleanValue(getQueryString(value))
+		}
+		return v
 
 	case *ast.Ident:
 		return getQueryString(e.Obj.Decl)
+
+	case *ast.BinaryExpr:
+		v := cleanValue(getQueryString(e.X))
+		v += cleanValue(getQueryString(e.Y))
+		return v
 	}
 
 	return ""
+}
+
+func cleanValue(s string) string {
+	return strings.NewReplacer(`"`, "", "`", "").Replace(s)
 }
