@@ -3,7 +3,6 @@ package execinquery
 import (
 	"go/ast"
 	"strings"
-	"unicode"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -54,38 +53,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				i = 1
 			}
 
-			var s string
-			switch arg := n.Args[i].(type) {
-			case *ast.BasicLit:
-				s = strings.Replace(arg.Value, "\"", "", -1)
-
-			case *ast.Ident:
-
-				switch arg2 := arg.Obj.Decl.(type) {
-				case *ast.AssignStmt:
-					for _, stmt := range arg2.Rhs {
-						basicLit, ok := stmt.(*ast.BasicLit)
-						if !ok {
-							continue
-						}
-
-						s = strings.Replace(basicLit.Value, "\"", "", -1)
-					}
-				case *ast.ValueSpec:
-					basicLit, ok := arg2.Values[0].(*ast.BasicLit)
-					if !ok {
-						return
-					}
-
-					s = strings.TrimLeftFunc(basicLit.Value, func(r rune) bool {
-						return !unicode.IsLetter(r) && !unicode.IsNumber(r)
-					})
-					s = strings.Replace(s, "\"", "", -1)
-				}
-
-			default:
+			s := getQueryString(n.Args[i])
+			if s == "" {
 				return
 			}
+
+			s = strings.TrimSpace(strings.NewReplacer(`"`, "", "`", "").Replace(s))
 
 			if strings.HasPrefix(strings.ToLower(s), "select") {
 				return
@@ -98,4 +71,24 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	})
 
 	return nil, nil
+}
+
+func getQueryString(exp interface{}) string {
+	switch e := exp.(type) {
+	case *ast.AssignStmt:
+		for _, stmt := range e.Rhs {
+			return getQueryString(stmt)
+		}
+
+	case *ast.BasicLit:
+		return e.Value
+
+	case *ast.ValueSpec:
+		return getQueryString(e.Values[0])
+
+	case *ast.Ident:
+		return getQueryString(e.Obj.Decl)
+	}
+
+	return ""
 }
