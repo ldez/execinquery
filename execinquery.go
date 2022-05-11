@@ -55,20 +55,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return
 			}
 
-			s := getQueryString(n.Args[i])
-			if s == "" {
+			query := getQueryString(n.Args[i])
+			if query == "" {
 				return
 			}
 
-			s = strings.TrimSpace(cleanValue(s))
+			query = strings.TrimSpace(cleanValue(query))
+			cmd, _, _ := strings.Cut(query, " ")
+			cmd = strings.ToTitle(cmd)
 
-			if strings.HasPrefix(strings.ToLower(s), "select") {
+			if strings.HasPrefix(cmd, "SELECT") {
 				return
 			}
 
-			s = strings.ToTitle(strings.SplitN(s, " ", 2)[0])
-
-			pass.Reportf(n.Fun.Pos(), "Use %s instead of %s to execute `%s` query", replacement, selector.Sel.Name, s)
+			pass.Reportf(n.Fun.Pos(), "Use %s instead of %s to execute `%s` query", replacement, selector.Sel.Name, cmd)
 		}
 	})
 
