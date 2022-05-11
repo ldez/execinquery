@@ -105,5 +105,17 @@ func getQueryString(exp interface{}) string {
 }
 
 func cleanValue(s string) string {
-	return strings.NewReplacer(`"`, "", "`", "").Replace(s)
+	v := strings.NewReplacer(`"`, "", "`", "").Replace(s)
+
+	if !strings.HasPrefix(v, "-- ") {
+		return v
+	}
+
+	// Remove SQL comments
+	index := strings.Index(v, "\n")
+	if index > 0 {
+		return s[index+1:]
+	}
+
+	return ""
 }

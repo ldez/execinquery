@@ -5,10 +5,20 @@ import (
 	"database/sql"
 )
 
+const selectWithComment = `-- foobar
+SELECT * FROM test WHERE test=?
+`
+
+const deleteWithComment = `-- foobar
+DELETE * FROM test WHERE test=?
+`
+
 func sample(db *sql.DB) {
 	s := "alice"
 
 	_ = db.QueryRowContext(context.Background(), "SELECT * FROM test WHERE test=?", s)
+	_ = db.QueryRowContext(context.Background(), selectWithComment, s)
+	_ = db.QueryRowContext(context.Background(), deleteWithComment, s) // want "It\\'s better to use Execute method instead of QueryRowContext method to execute `DELETE` query"
 
 	_ = db.QueryRowContext(context.Background(), "DELETE * FROM test WHERE test=?", s) // want "It\\'s better to use Execute method instead of QueryRowContext method to execute `DELETE` query"
 	_ = db.QueryRowContext(context.Background(), "UPDATE * FROM test WHERE test=?", s) // want "It\\'s better to use Execute method instead of QueryRowContext method to execute `UPDATE` query"
