@@ -44,8 +44,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return
 			}
 
-			var i int
+			replacement := "Exec"
+			var i int // the index of the query argument
 			if strings.Contains(selector.Sel.Name, "Context") {
+				replacement = "ExecContext"
 				i = 1
 			}
 
@@ -66,7 +68,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 			s = strings.ToTitle(strings.SplitN(s, " ", 2)[0])
 
-			pass.Reportf(n.Fun.Pos(), "It's better to use Execute method instead of %s method to execute `%s` query", selector.Sel.Name, s)
+			pass.Reportf(n.Fun.Pos(), "Use %s instead of %s to execute `%s` query", replacement, selector.Sel.Name, s)
 		}
 	})
 

@@ -18,35 +18,34 @@ func sample(db *sql.DB) {
 
 	_ = db.QueryRowContext(context.Background(), "SELECT * FROM test WHERE test=?", s)
 	_ = db.QueryRowContext(context.Background(), selectWithComment, s)
-	_ = db.QueryRowContext(context.Background(), deleteWithComment, s) // want "It\\'s better to use Execute method instead of QueryRowContext method to execute `DELETE` query"
+	_ = db.QueryRowContext(context.Background(), deleteWithComment, s) // want "Use ExecContext instead of QueryRowContext to execute `DELETE` query"
 
-	_ = db.QueryRowContext(context.Background(), "DELETE * FROM test WHERE test=?", s) // want "It\\'s better to use Execute method instead of QueryRowContext method to execute `DELETE` query"
-	_ = db.QueryRowContext(context.Background(), "UPDATE * FROM test WHERE test=?", s) // want "It\\'s better to use Execute method instead of QueryRowContext method to execute `UPDATE` query"
+	_ = db.QueryRowContext(context.Background(), "DELETE * FROM test WHERE test=?", s) // want "Use ExecContext instead of QueryRowContext to execute `DELETE` query"
+	_ = db.QueryRowContext(context.Background(), "UPDATE * FROM test WHERE test=?", s) // want "Use ExecContext instead of QueryRowContext to execute `UPDATE` query"
 
-	_, _ = db.Query("UPDATE * FROM test WHERE test=?", s)                              // want "It\\'s better to use Execute method instead of Query method to execute `UPDATE` query"
-	_, _ = db.QueryContext(context.Background(), "UPDATE * FROM test WHERE test=?", s) // want "It\\'s better to use Execute method instead of QueryContext method to execute `UPDATE` query"
-	_ = db.QueryRow("UPDATE * FROM test WHERE test=?", s)                              // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
+	_, _ = db.Query("UPDATE * FROM test WHERE test=?", s)                              // want "Use Exec instead of Query to execute `UPDATE` query"
+	_, _ = db.QueryContext(context.Background(), "UPDATE * FROM test WHERE test=?", s) // want "Use ExecContext instead of QueryContext to execute `UPDATE` query"
+	_ = db.QueryRow("UPDATE * FROM test WHERE test=?", s)                              // want "Use Exec instead of QueryRow to execute `UPDATE` query"
 
 	query := "UPDATE * FROM test where test=?"
-	_, _ = db.Query(query, s) // want "It\\'s better to use Execute method instead of Query method to execute `UPDATE` query"
+	_, _ = db.Query(query, s) // want "Use Exec instead of Query to execute `UPDATE` query"
 
-	var f1 = `
+	f1 := `
 UPDATE * FROM test WHERE test=?`
-	_ = db.QueryRow(f1, s) // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
+	_ = db.QueryRow(f1, s) // want "Use Exec instead of QueryRow to execute `UPDATE` query"
 
 	const f2 = `
 UPDATE * FROM test WHERE test=?`
-	_ = db.QueryRow(f2, s) // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
+	_ = db.QueryRow(f2, s) // want "Use Exec instead of QueryRow to execute `UPDATE` query"
 
 	f3 := `
 UPDATE * FROM test WHERE test=?`
-	_ = db.QueryRow(f3, s) // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
+	_ = db.QueryRow(f3, s) // want "Use Exec instead of QueryRow to execute `UPDATE` query"
 
 	f4 := f3
-	_ = db.QueryRow(f4, s) // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
+	_ = db.QueryRow(f4, s) // want "Use Exec instead of QueryRow to execute `UPDATE` query"
 
 	f5 := `
 UPDATE * ` + `FROM test` + ` WHERE test=?`
-	_ = db.QueryRow(f5, s) // want "It\\'s better to use Execute method instead of QueryRow method to execute `UPDATE` query"
-
+	_ = db.QueryRow(f5, s) // want "Use Exec instead of QueryRow to execute `UPDATE` query"
 }
